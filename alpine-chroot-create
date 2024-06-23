@@ -1,0 +1,61 @@
+#!/bin/sh
+
+err() {
+	echo "$@" >&2
+	exit 1
+}
+
+if [ "$(id -u)" -ne 0 ]; then
+	err 'Please run as root'
+fi
+
+if [ -z "$1" ]
+then
+	err 'Specify path as the first argument'
+fi
+
+ensure() {  
+	{ set +x; } 2>/dev/null
+        [ $# -lt 1 ] && return 0
+	$@ || err failed executing: "$@"
+	set -x
+}
+
+
+if [ -z "$alpine_mirror" ]
+then
+	alpine_mirror='https://dl-cdn.alpinelinux.org/alpine'
+fi
+export alpine_mirror
+ensure export arch="$(uname -m)"
+export release='edge'
+export chroot_dir="$1"
+
+ensure export rxrand="$(base64 < /dev/random | tr -d '/+=' | head -c 10)"
+
+set -xu
+
+umask 022
+ensure mkdir -p "${chroot_dir}"
+
+# DOWNLOAD APK AND BOOTSTRAP BASE SYSTEM
+ensure mkdir "/tmp/alpine-chroot-tmp-$rxrand"
+ensure cd "/tmp/alpine-chroot-tmp-$rxrand"
+ensure curl -LO "${alpine_mirror}/${release}/main/${arch}/APKINDEX.tar.gz"
+ensure tar xvf APKINDEX.tar.gz
+ensure export apk_version="$(sed -n '/P:apk-tools-static/{n;p;}' APKINDEX | cut -d ':' -f 2)"
+ensure curl -LO "${alpine_mirror}/${release}/main/${arch}/apk-tools-static-${apk_version}.apk"
+ensure tar -xzf apk-tools-static-*.apk
+ensure ./sbin/apk.static -X "${alpine_mirror}/${release}/main" -U --allow-untrusted -p "${chroot_dir}" --initdb add alpine-base
+ensure cd "${chroot_dir}"
+ensure rm -rf "/tmp/alpine-chroot-tmp-$rxrand"
+
+# ADD REPOSITORIES TO APK
+ensure cp -L /etc/resolv.conf ${chroot_dir}/etc/
+ensure mkdir -p ${chroot_dir}/etc/apk
+ensure echo "${alpine_mirror}/${release}/main" > ${chroot_dir}/etc/apk/repositories
+ensure echo "${alpine_mirror}/${release}/community" >> ${chroot_dir}/etc/apk/repositories
+if [ "${release}" = edge ]
+then
+	ensure echo "${alpine_mirror}/edge/testing" >> ${chroot_dir}/etc/apk/repositories
+fi
