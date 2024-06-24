@@ -1,7 +1,8 @@
-# alpine-chroot
+# rxchroot
 
-These are some simple scripts to create an [Alpine Linux](https://alpinelinux.org)
-chroot in an existing system.
+These are some simple scripts to create a Linux chroot in an existing system.
+
+## Alpine Linux
 
 ```
 alpine-chroot-create /alpine
