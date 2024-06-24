@@ -1,11 +1,11 @@
 #!/bin/sh
 
-if [ "$#" -ne 1 ]
+if [ -z "$1" ]
 then
-	printf 'usage: %s chroot_dir\n' "$0" >&2
+	printf 'usage: %s [OPTIONS] NEWROOT [COMMAND [ARG]...]\n' "$0" >&2
 	exit 1
 fi
 
 umask 022
 
-exec sudo chroot "$1" /bin/ash -l
+exec sudo chroot "$@"
