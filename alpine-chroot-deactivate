@@ -25,7 +25,7 @@ set -xu
 
 umask 022
 
-ensure export chroot_dir="$1"
+ensure export chroot_dir="$(ensure realpath -- "$1")"
 
 umount "${chroot_dir}/dev"
 umount "${chroot_dir}/proc"

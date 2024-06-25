@@ -29,7 +29,7 @@ fi
 export alpine_mirror
 ensure export arch="$(uname -m)"
 export release='edge'
-export chroot_dir="$1"
+ensure export chroot_dir="$(ensure realpath -- "$1")"
 
 ensure export rxrand="$(base64 < /dev/random | tr -d '/+=' | head -c 10)"
 
