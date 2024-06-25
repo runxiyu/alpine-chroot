@@ -1,0 +1,16 @@
+[Unit]
+Description=soju in an Alpine chroot
+Requires=alpine.service
+After=alpine.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+# Fix the userspec to match the Alpine UID/GUID
+ExecStart=/sbin/chroot --userspec=101:102 /alpine /usr/bin/soju
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

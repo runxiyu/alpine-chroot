@@ -1,0 +1,17 @@
+[Unit]
+Description=Alpine chroot mounts
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+User=root
+Group=root
+RuntimeDirectory=/alpine
+ExecStart=/root/rxchroot/alpine-chroot-activate /alpine
+ExecReload=/root/rxchroot/alpine-chroot-activate /alpine
+ExecStop=/root/rxchroot/alpine-chroot-deactivate /alpine
+
+[Install]
+WantedBy=multi-user.target
